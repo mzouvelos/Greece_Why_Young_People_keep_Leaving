@@ -1,0 +1,2024 @@
+---
+title: "Greece - Why do Young People keep leaving? 🧠✈️"
+author: "Michalis Zouvelos"
+date: '`r Sys.Date()`'
+output: 
+  html_document:
+    number_sections: true
+    fig_caption: true
+    toc: true
+    toc_depth: 2
+    fig_width: 7
+    fig_height: 4.5
+    code_folding: hide
+    df_print: paged
+    theme: cosmo
+    highlight: tango
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(out.width="100%", fig.height = 6, split=FALSE, fig.align = 'default')
+options(dplyr.summarise.inform = FALSE)
+```
+
+
+
+<center><img src="https://media.istockphoto.com/photos/flag-of-greece-and-the-plane-the-concept-of-travel-picture-id1220611394?b=1&k=20&m=1220611394&s=170667a&w=0&h=oHwmjPjAWS0jIoA9rkAmnllmd7n6znpeAhTJm5zjkYY="></center>
+
+<center>
+
+*Image source: Unsplash*
+
+</center>
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Introduction 📌 </p>
+
+# Introduction
+
+<p style="text-align: justify;">
+Some weeks ago I had a very interesting discussion with a new friend of mine from the distant beautiful Peru while being in Utrecht. The discussion was around if Greece is in really such a bad economic spot, as me and some other Greeks probably told her many times that for many immigration is not a choice rather a necessity to find a good life quality. She didn't seem to understand it at first although a very knowledgeable person as in her eyes Greece is still a Western European Country, that is very well of better than other Countries especially from Southern America.  So I hope that exploring the data will shed some more light into our interesting conversation. (for my Peruvian friend Daniella)
+</p>
+
+<p style="text-align: justify;">
+Is it time for Greek immigrants to return home and brain-drain turn to brain-gain? Do the brains have anything to gain also regarding their financial well-being? Lets explore some data so at the end anyone can take his own conclusions if it's time to return to Greece.
+</p>
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Notes 📝 </p>
+
+<p style="text-align: justify;">
+- The data that I will use are from OECD org....
+</p>
+
+<p style="text-align: justify;">
+- I will use data only from Countries within the European Union as most of Greek immigrants etc. are located and working in other European Countries and not at least so much on Costa Rica or Mexico for example. United Kingdom will be an exemption as will be Australia too since there are a lot of Greek immigrants in Australia from my knowledge, so it will also be included... USA & Canada too
+So Korea, Japan, Mexico, Costa Rica ...... etc will be excluded
+</p>
+
+
+<p style="text-align: justify;">
+**All the Countries that are included in the OECD data are**: Australia, Austria, Belgium, Canada, Chile, Colombia, Czechia, Denmark, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Japan, South Korea, Luxembourg, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Slovakia, Spain, Sweden, Switzerland, Turkey, United Kingdom, United States, Chile, Estonia, Israel, Slovenia, Latvia, Lithuania, Colombia, Costa Rica and the indexes OECD, G-7, EA19, EU27_2020.
+</p>
+
+<p style="text-align: justify;">
+- I will use data only from Countries within the European Union as most of Greek immigrants etc. are located and working in other European Countries and not at least so much on Costa Rica or Mexico for example. United Kingdom, USA, Canada and Australia will also be included as there are a lot of Greeks located in these countries.
+</p>
+
+<p style="text-align: justify;">
+So the **Countries that will be included** will be the following: Austria, Belgium, Czech Republic (Czechia), Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Ireland, Italy, Latvia, Lithuania, Luxembourg, Netherlands, Norway, Poland, Portugal, Slovakia, Spain, Sweden, Switzerland, United Kingdom, United States, Canada and Australia.
+</p>
+
+```{r loading packages, echo = F}
+# Importing libraries
+
+# Loading the pacman library
+library(pacman)
+# Importing the required Packages using pacman
+pacman::p_load(tidyverse, vroom, xts, glue, visdat, naniar, rmarkdown, dlookr, highcharter, DT, gt, gtExtras, lubridate, countrycode, scales, webshot, htmlwidgets, gganimate, babynames, hrbrthemes,viridis)
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> OECD Data Categories 📊 </p>
+
+# Overview {.tabset .tabset-fade .tabset-pills}
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+## Unemployment 
+
+
+```{r Reading Unemployment, echo = F}
+# Reading data
+unemployment_rate <- vroom("Unemployment/Unemployment_rate.csv", col_types = cols())
+unemployment_age_group <- vroom("Unemployment/Unemployment_rate_by_age_group.csv", col_types = cols())
+unemployment_forecast <- vroom("Unemployment/Unemployment_rate_forecast.csv", col_types = cols())
+unemployment_education <- vroom("Unemployment/Unemployment_rates_by_education_level.csv", col_types = cols())
+unemployment_long_term <- vroom("Unemployment/Long_term_unemployment_rate.csv", col_types = cols())
+unemployment_youth <- vroom("Unemployment/Youth_unemployment_rate.csv", col_types = cols())
+
+# Getting view of the data
+
+# View(unemployment_rate)
+# View(unemployment_age_group)
+# View(unemployment_forecast)
+# View(unemployment_education)
+# View(unemployment_long_term)
+# View(unemployment_youth)
+```
+
+
+```{r Unemployment Cleaning - Engineering, echo = F}
+# Data cleaning - Feature Engineering
+
+# Unemployment_rate 
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+unemployment_rate <- unemployment_rate[unemployment_rate$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & unemployment_rate$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+unemployment_rate <- unemployment_rate %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+
+# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
+unemployment_rate$TIME <- sapply(unemployment_rate$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
+unemployment_rate$TIME <- unemployment_rate$TIME %>% 
+  as.numeric(unemployment_rate$TIME)
+
+# Unemployment_age_group
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+unemployment_age_group <- unemployment_age_group[unemployment_age_group$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & unemployment_age_group$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+unemployment_age_group <- unemployment_age_group %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
+unemployment_age_group$TIME <- sapply(unemployment_age_group$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
+unemployment_age_group$TIME <- unemployment_age_group$TIME %>% 
+  as.numeric(unemployment_age_group$TIME)
+
+# Unemployment_forecast 
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+unemployment_forecast <- unemployment_forecast[unemployment_forecast$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & unemployment_forecast$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+unemployment_forecast <- unemployment_forecast %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
+unemployment_forecast$TIME <- sapply(unemployment_forecast$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
+unemployment_forecast$TIME <- unemployment_forecast$TIME %>% 
+  as.numeric(unemployment_forecast$TIME)
+
+# Unemployment_education
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+unemployment_education <- unemployment_education[unemployment_education$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & unemployment_education$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+unemployment_education <- unemployment_education %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Unemployment_long_term
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+unemployment_long_term <- unemployment_long_term[unemployment_long_term$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & unemployment_long_term$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+unemployment_long_term <- unemployment_long_term %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Unemployment_youth
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+unemployment_youth <- unemployment_youth[unemployment_youth$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & unemployment_youth$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+unemployment_youth <- unemployment_youth %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
+unemployment_youth$TIME <- sapply(unemployment_youth$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
+unemployment_youth$TIME <- unemployment_youth$TIME %>% 
+  as.numeric(unemployment_youth$TIME)
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Unemployment 📉 </p>
+
+
+The 5 (five) different data sets from OECD that I am gonna use to illustrate unemployment metrics, are the following together with their description (citation provided on references):
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Unemployment rate** : The unemployed are people of working age who are without work, are available for work, and have taken specific steps to find work. The uniform application of this definition results in estimates of unemployment rates that are more internationally comparable than estimates based on national definitions of unemployment. This indicator is measured in numbers of unemployed people as a percentage of the labour force and it is seasonally adjusted. The labour force is defined as the total number of unemployed people plus those in employment. Data are based on labour force surveys (LFS).  For European Union countries where monthly LFS information is not available, the monthly unemployed figures are estimated by Eurostat.
+</p>
+
+
+
+```{r Unemployment Rate Chart, echo = F}
+# Plot unemployment_rate for 2021
+unemp_rate_2021_total <- unemployment_rate[unemployment_rate$TIME == 2021 & unemployment_rate$SUBJECT == "TOT",]
+unemp_rate_2021_total <- unemp_rate_2021_total %>% 
+  arrange(-Value) 
+
+unemp_rate_2021_men <- unemployment_rate[unemployment_rate$TIME == 2021 & unemployment_rate$SUBJECT == "MEN",]
+unemp_rate_2021_men <- unemp_rate_2021_men %>% 
+  arrange(-Value) 
+
+unemp_rate_2021_women <- unemployment_rate[unemployment_rate$TIME == 2021 & unemployment_rate$SUBJECT == "WOMEN",]
+unemp_rate_2021_women <- unemp_rate_2021_women %>% 
+  arrange(-Value) 
+
+p1 <- unemp_rate_2021_total %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Unemployment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Unemployment rate by Country (%), <b>Total 2021</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+
+p2 <- unemp_rate_2021_men %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Unemployment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Unemployment rate by Country (%), <b>Men 2021</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+p3 <- unemp_rate_2021_women %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Unemployment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Unemployment rate by Country (%), <b>Women 2021</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+hw_grid(p1,p2,p3, ncol = 1, rowheight = 300) %>%
+  htmltools::browsable()
+```
+
+
+- A **first place** in Unemployment rate % for Greece in 2021 among these Countries.
+
+```{r Greece animation unemployment rate, echo = F}
+# Keep only Greece and Total
+unemp_greece <- unemployment_rate %>% 
+ filter(Country %in% c("Greece")) %>%
+ filter(SUBJECT =="TOT")
+  
+# Plot
+unemp_greece %>%
+  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
+    geom_line() +
+    geom_point() +
+    scale_color_viridis(discrete = TRUE) +
+    ggtitle("Greece Unemployment Rate (1999-2021)") +
+    theme_ipsum() +
+    ylab("Unemployment rate %") +
+    transition_reveal(TIME)
+
+# Save at gif:
+# anim_save("Greece_unemployment.gif")
+```
+
+
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Unemployment rate by age group** : The unemployed are people of working age who are without work, are available for work, and have taken specific steps to find work. The uniform application of this definition results in estimates of unemployment rates that are more internationally comparable than estimates based on national definitions of unemployment. Unemployment rates are shown for two age groups: people aged 15 to 24 (those just entering the labour market following education); and people aged 25 and over. This indicator is measured in numbers of unemployed people as a percentage of the labour force and it is seasonally adjusted. The labour force is defined as the total number of unemployed people plus those in civilian employment. Data are based on labour force surveys (LFS).  For European Union countries where monthly LFS information is not available, the monthly unemployed figures are estimated by Eurostat.
+</p>
+
+
+```{r Unemployment Rate by Age Group Chart, echo = F}
+# Plot unemployment_rate by age group for 2021
+unemp_rate_2021_24 <- unemployment_age_group[unemployment_age_group$TIME == 2021 & unemployment_age_group$SUBJECT == "15_24",]
+unemp_rate_2021_24 <- unemp_rate_2021_24 %>% 
+  arrange(-Value) 
+
+unemp_rate_2021_74 <- unemployment_age_group[unemployment_age_group$TIME == 2021 & unemployment_age_group$SUBJECT == "25_74",]
+unemp_rate_2021_74 <- unemp_rate_2021_74 %>% 
+  arrange(-Value) 
+
+
+p1 <- unemp_rate_2021_24 %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Unemployment rate by Age Group (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Unemployment rate by Age Group (%), <b>ages 15-24 in 2021</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+p2 <- unemp_rate_2021_74 %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Unemployment rate by Age Group (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Unemployment rate by Age Group (%), <b>ages 25-74 in 2021</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+hw_grid(p1,p2, ncol = 1, rowheight = 300) %>%
+  htmltools::browsable()
+```
+
+
+- Another **first place** in Unemployment for Greece in 2021 among these Countries, both for the ages 25 to 74 and in the young ages of 15 to 24.
+
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Unemployment rates by education level** : This indicator shows the unemployment rates of people according to their education levels: below upper secondary, upper secondary non-tertiary, or tertiary. The unemployed are defined as people without work but actively seeking employment and currently available to start work. This indicator measures the percentage of unemployed 25-64 year-olds among 25-64 year-olds in the labour force.
+</p>
+
+
+```{r Unemployment Rate by Education Level Chart, echo = F}
+# Plot unemployment_rate by education level for 2021
+unemp_rate_2020_below <- unemployment_education[unemployment_education$TIME == 2020 & unemployment_education$SUBJECT == "BUPPSRY",]
+unemp_rate_2020_below <- unemp_rate_2020_below %>% 
+  arrange(-Value) 
+
+unemp_rate_2020_non_tertiary <- unemployment_education[unemployment_education$TIME == 2020 & unemployment_education$SUBJECT == "UPPSRY_NTRY",]
+unemp_rate_2020_non_tertiary <- unemp_rate_2020_non_tertiary %>% 
+  arrange(-Value) 
+
+unemp_rate_2020_tertiary <- unemployment_education[unemployment_education$TIME == 2020 & unemployment_education$SUBJECT == "TRY",]
+unemp_rate_2020_tertiary <- unemp_rate_2020_tertiary %>% 
+  arrange(-Value) 
+
+p1 <- unemp_rate_2020_below %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Unemployment rate by Education Level (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Unemployment rate by Education Level (%), <b>with below secondary Education in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+p2 <- unemp_rate_2020_non_tertiary %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Unemployment rate by Education Level (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Unemployment rate by Education Level (%), <b>with upper secondary but non-Tertiary Education in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+p3 <- unemp_rate_2020_tertiary %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Unemployment rate by Education Level (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Unemployment rate by Education Level (%), <b>with Tertiary Education in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+hw_grid(p1,p2,p3, ncol = 1, rowheight = 400) %>%
+  htmltools::browsable()
+```
+
+- Greece takes first spot in unemployment rates by education level for people who have graduated High School (upper-secondary) and Higher Education e.g. Universities etc. (Tertiary).
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+
+<p style="text-align: justify;">
+📌 **Long-term unemployment rate** : Long-term unemployment refers to people who have been unemployed for 12 months or more. The long-term unemployment rate shows the proportion of these long-term unemployed among all unemployed. Unemployment is usually measured by national labour force surveys and refers to people reporting that they have worked in gainful employment for less than one hour in the previous week, who are available for work and who have sought employment in the past four weeks. Long-term unemployment causes significant mental and material stress for those affected and their families. It is also of particular concern for policy makers, as high rates of long-term unemployment indicate that labour markets are operating inefficiently. This indicator is measured as a percentage of unemployed.
+</p>
+
+
+```{r Long-term Unemployment Rate Chart, echo = F}
+# Plot long-term unemployment for 2020
+unemp_rate_2020_long_term <- unemployment_long_term[unemployment_long_term$TIME == 2020,]
+unemp_rate_2020_long_term <- unemp_rate_2020_long_term %>% 
+  arrange(-Value) 
+
+
+unemp_rate_2020_long_term %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Unemployment rate") %>% 
+ hc_yAxis(title = list(text = "Long-term Unemployment Rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Long-term Unemployment Rate (%), <b>2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+```
+
+- Greece first spot again with a sounding 66.51%.
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Youth unemployment rate** : The youth unemployment rate is the number of unemployed 15-24 year-olds expressed as a percentage of the youth labour force. Unemployed people are those who report that they are without work, that they are available for work and that they have taken active steps to find work in the last four weeks.
+</p>
+
+
+```{r Youth Unemployment Rate Chart, echo = F}
+# Plot youth unemployment_rate for 2021
+unemp_rate_youth_2021_men <- unemployment_youth[unemployment_youth$TIME == 2021 & unemployment_youth$SUBJECT == "MEN",]
+unemp_rate_youth_2021_men <- unemp_rate_youth_2021_men %>% 
+  arrange(-Value) 
+
+unemp_rate_youth_2021_women <- unemployment_youth[unemployment_youth$TIME == 2021 & unemployment_youth$SUBJECT == "WOMEN",]
+unemp_rate_youth_2021_women <- unemp_rate_youth_2021_women %>% 
+  arrange(-Value) 
+
+
+p1 <- unemp_rate_youth_2021_men %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Youth Unemployment Rate (%)") %>% 
+ hc_yAxis(title = list(text = "Youth Unemployment Rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Youth Unemployment rate by Country (%), <b>Men in 2021</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+p2 <- unemp_rate_youth_2021_women %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Youth Unemployment Rate (%)") %>% 
+ hc_yAxis(title = list(text = "Youth Unemployment Rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Youth Unemployment Rate (%), <b>Women in 2021</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+hw_grid(p1,p2, ncol = 1, rowheight = 400) %>%
+  htmltools::browsable()
+
+```
+ 
+                                                                  
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+
+## Employment
+
+```{r Reading Employment, echo = F}
+# Reading data
+employment_rate <- vroom("Employment/Employment_rate.csv", col_types = cols())
+employment_age_group <- vroom("Employment/Employment_rate_by_age_group.csv", col_types = cols())
+employment_education <- vroom("Employment/Employment_by_education_level.csv", col_types = cols())
+employment_activity <- vroom("Employment/Employment_by_activity.csv", col_types = cols())
+employment_self <- vroom("Employment/Self_employment_rate.csv", col_types = cols())
+employment_hours_worked <- vroom("Employment/Hours_worked.csv", col_types = cols())
+
+# Getting view of the data
+
+# View(employment_rate)
+# View(employment_age_group)
+# View(employment_education)
+# View(employment_activity)
+# View(employment_self)
+# View(employment_hours_worked)
+```
+
+
+```{r Employment Cleaning - Engineering, echo = F}
+# Data cleaning - Feature Engineering
+
+# Employment_rate 
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency and percentage Measure
+employment_rate <- employment_rate[employment_rate$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & employment_rate$FREQUENCY == "A" & employment_rate$MEASURE == "PC_WKGPOP", ]
+
+# Different cleaning / Features
+employment_rate <- employment_rate %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+
+# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
+employment_rate$TIME <- sapply(employment_rate$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
+employment_rate$TIME <- employment_rate$TIME %>% 
+  as.numeric(employment_rate$TIME)
+
+# Employment_age_group
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+employment_age_group <- employment_age_group[employment_age_group$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & employment_age_group$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+employment_age_group <- employment_age_group %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
+employment_age_group$TIME <- sapply(employment_age_group$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
+employment_age_group$TIME <- employment_age_group$TIME %>% 
+  as.numeric(employment_age_group$TIME)
+
+# Employment_education
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+employment_education <- employment_education[employment_education$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & employment_education$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+employment_education <- employment_education %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Employment_activity
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+employment_activity <- employment_activity[employment_activity$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & employment_activity$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+employment_activity <- employment_activity %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
+employment_activity$TIME <- sapply(employment_activity$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
+employment_activity$TIME <- employment_activity$TIME %>% 
+  as.numeric(employment_activity$TIME)
+
+# Employment_self_employment
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+employment_self <- employment_self[employment_self$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & employment_self$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+employment_self <- employment_self %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+# Unemployment_youth
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+employment_hours_worked <- employment_hours_worked[employment_hours_worked$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & employment_hours_worked$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+employment_hours_worked <- employment_hours_worked %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
+
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Employment 💼 </p>
+
+
+The 5 (five) different data sets from OECD that I am gonna use to illustrate employment metrics are the following together with their description (citation provided on references):
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Employment rate** : Employment rates are defined as a measure of the extent to which available labour resources (people available to work) are being used. They are calculated as the ratio of the employed to the working age population. Employment rates are sensitive to the economic cycle, but in the longer term they are significantly affected by governments' higher education and income support policies and by policies that facilitate employment of women and disadvantaged groups. Employed people are those aged 15 or over who report that they have worked in gainful employment for at least one hour in the previous week or who had a job but were absent from work during the reference week. The working age population refers to people aged 15 to 64. This indicator is seasonally adjusted and it is measured in terms of thousand persons aged 15 and over; and in numbers of employed persons aged 15 to 64 as a percentage of working age population.
+</p>
+
+
+```{r Employment Rate Chart, echo = F}
+# Plot employment rate for 2020
+emp_rate_2020_total <- employment_rate[employment_rate$TIME == 2020 & employment_rate$SUBJECT == "TOT",]
+emp_rate_2020_total <- emp_rate_2020_total %>% 
+  arrange(-Value) 
+
+emp_rate_2020_men <- employment_rate[employment_rate$TIME == 2020 & employment_rate$SUBJECT == "MEN",]
+emp_rate_2020_men <- emp_rate_2020_men %>% 
+  arrange(-Value) 
+
+emp_rate_2020_women <- employment_rate[employment_rate$TIME == 2020 & employment_rate$SUBJECT == "WOMEN",]
+emp_rate_2020_women <- emp_rate_2020_women %>% 
+  arrange(-Value) 
+
+p1 <- emp_rate_2020_total %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Employment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment rate by Country (%), <b>Total 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+
+p2 <- emp_rate_2020_men %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Employment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment rate by Country (%), <b>Men 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+p3 <- emp_rate_2020_women %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Employment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment rate by Country (%), <b>Women 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+hw_grid(p1,p2,p3, ncol = 1, rowheight = 400) %>%
+  htmltools::browsable()
+```
+
+
+```{r Greece animation employment, echo = F}
+# Keep only Greece and Total
+# emp_greece <- employment_rate %>% 
+#  filter(Country %in% c("Greece")) %>%
+#  filter(SUBJECT =="TOT")
+  
+# Plot
+# emp_greece %>%
+#  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
+#    geom_line() +
+#    geom_point() +
+#    scale_color_viridis(discrete = TRUE) +
+#    ggtitle("Greece Employment Rate % (1998-2020)") +
+#    theme_ipsum() +
+#    ylab("Employment rate %") +
+#    transition_reveal(TIME)
+
+# Save at gif:
+# anim_save("Greece_employment.gif")
+```
+
+
+
+<p style="text-align: justify;">
+📌 **Employment rate by age group** : The employment rate for a given age group is measured as the number of employed people of a given age as a percentage of the total number of people in that same age group. Employed people are defined as those aged 15 and over who report that they have worked in gainful employment for at least one hour in the previous week or who had a job but were absent from work during the reference week while having a formal job attachment. Employment rates are shown for four age groups: people aged 15-64 (the working age population): people aged 15 to 24 (those just entering the labour market following education); people aged 25 to 54 (those in their prime working lives); people aged 55 to 64 (those passing the peak of their career and approaching retirement). This indicator is seasonally adjusted and it is measured as a percentage in same age group.
+</p>
+
+
+```{r Employment Rate by Age Group Chart, echo = F}
+# Plot employment_rate by age group for 2020
+emp_2020_age_15_24 <- employment_age_group[employment_age_group$TIME == 2020 & employment_age_group$SUBJECT == "15_24",]
+emp_2020_age_15_24 <- emp_2020_age_15_24 %>% 
+  arrange(-Value) 
+
+emp_2020_age_25_54 <- employment_age_group[employment_age_group$TIME == 2020 & employment_age_group$SUBJECT == "25_54",]
+emp_2020_age_25_54 <- emp_2020_age_25_54 %>% 
+  arrange(-Value) 
+
+emp_2020_age_55_64 <- employment_age_group[employment_age_group$TIME == 2020 & employment_age_group$SUBJECT == "55_64",]
+emp_2020_age_55_64 <- emp_2020_age_55_64 %>% 
+  arrange(-Value) 
+
+p1 <- emp_2020_age_15_24 %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Employment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment Rate by Age Group (%), <b>ages 15-24 in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+
+p2 <- emp_2020_age_25_54 %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Employment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment Rate by Age Group (%), <b>ages 25-54 in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+p3 <- emp_2020_age_55_64 %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Eemployment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment Rate by Age Group (%), <b>ages 55-64 in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+hw_grid(p1,p2,p3, ncol = 1, rowheight = 400) %>%
+  htmltools::browsable()
+```
+
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Employment by education level** : This indicator shows the employment rates of people according to their education levels: below upper secondary, upper secondary non-tertiary, or tertiary. The employment rate refers to the number of persons in employment as a percentage of the population of working age. The employed are defined as those who work for pay or profit for at least one hour a week, or who have a job but are temporarily not at work due to illness, leave or industrial action. This indicator measures the percentage of employed 25-64 year-olds among all 25-64 year-olds.
+</p>
+
+
+```{r Employment Rate by Education Level Chart, echo = F}
+# Plot employment by education level for 2020
+emp_rate_2020_below <- employment_education[employment_education$TIME == 2020 & employment_education$SUBJECT == "BUPPSRY",]
+emp_rate_2020_below <- emp_rate_2020_below %>% 
+  arrange(-Value) 
+
+emp_rate_2020_non_tertiary <- employment_education[employment_education$TIME == 2020 & employment_education$SUBJECT == "UPPSRY_NTRY",]
+emp_rate_2020_non_tertiary <- emp_rate_2020_non_tertiary %>% 
+  arrange(-Value) 
+
+emp_rate_2020_tertiary <- employment_education[employment_education$TIME == 2020 & employment_education$SUBJECT == "TRY",]
+emp_rate_2020_tertiary <- emp_rate_2020_tertiary %>% 
+  arrange(-Value) 
+
+p1 <- emp_rate_2020_below %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Employment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate by Education Level (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment rate by Education Level (%), <b>with below secondary Education in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+p2 <- emp_rate_2020_non_tertiary %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Employment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate by Education Level (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment rate by Education Level (%), <b>with upper secondary but non-Tertiary Education in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+p3 <- emp_rate_2020_tertiary %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Employment rate") %>% 
+ hc_yAxis(title = list(text = "Employment rate by Education Level (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Employment rate by Education Level (%), <b>with Tertiary Education in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+hw_grid(p1,p2,p3, ncol = 1, rowheight = 400) %>%
+  htmltools::browsable()
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Self-employment rate** : Self-employment is defined as the employment of employers, workers who work for themselves, members of producers' co-operatives, and unpaid family workers. The latter are unpaid in the sense that they lack a formal contract to receive a fixed amount of income at regular intervals, but they share in the income generated by the enterprise. Unpaid family workers are particularly important in farming and retail trade. All persons who work in corporate enterprises, including company directors, are considered to be employees. Self-employment may be seen either as a survival strategy for those who cannot find any other means of earning an income or as evidence of entrepreneurial spirit and a desire to be one's own boss. Employed people are as those aged 15 or over who report that they have worked in gainful employment for at least one hour in the previous week or who had a job but were absent from work during the reference week. This indicator is measured as a percentage of the employed population considered (total, men or women).
+</p>
+
+
+```{r Self Employment Rate Chart, echo = F}
+# Plot self employment for 2020
+emp_self_2020_total <- employment_self[employment_self$TIME == 2020 & employment_self$SUBJECT == "TOT",]
+emp_self_2020_total <- emp_self_2020_total %>% 
+  arrange(-Value) 
+
+emp_self_2020_men <- employment_self[employment_self$TIME == 2020 & employment_self$SUBJECT == "MEN",]
+emp_self_2020_men <- emp_self_2020_men %>% 
+  arrange(-Value) 
+
+emp_self_2020_women <- employment_self[employment_self$TIME == 2020 & employment_self$SUBJECT == "WOMEN",]
+emp_self_2020_women <- emp_self_2020_women %>% 
+  arrange(-Value) 
+
+p1 <- emp_self_2020_total %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Self- Employment rate") %>% 
+ hc_yAxis(title = list(text = "Self - Employment Rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Self - Employment Rate (%), <b>Total in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+
+p2 <- emp_self_2020_men %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Self- Employment rate") %>% 
+ hc_yAxis(title = list(text = "Self - Employment Rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Self - Employment Rate (%), <b>Men in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+p3 <- emp_self_2020_women %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Self- Employment rate") %>% 
+ hc_yAxis(title = list(text = "Self - Employment Rate (%)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Self - Employment Rate (%), <b>Women in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+
+hw_grid(p1,p2,p3, ncol = 1, rowheight = 400) %>%
+  htmltools::browsable()
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Hours worked** : Average annual hours worked is defined as the total number of hours actually worked per year divided by the average number of people in employment per year. Actual hours worked include regular work hours of full-time, part-time and part-year workers, paid and unpaid overtime, hours worked in additional jobs, and exclude time not worked because of public holidays, annual paid leave, own illness, injury and temporary disability, maternity leave, parental leave, schooling or training, slack work for technical or economic reasons, strike or labour dispute, bad weather, compensation leave and other reasons. The data cover employees and self-employed workers. This indicator is measured in terms of hours per worker per year. The data are published with the following health warning: The data are intended for comparisons of trends over time; they are unsuitable for comparisons of the level of average annual hours of work for a given year, because of differences in their sources and method of calculation.
+</p>
+
+
+```{r Hours worked Chart, echo = F}
+# Plot hours worked per worker for 2020
+emp_hours_worked <- employment_hours_worked[employment_hours_worked$TIME == 2020 & employment_hours_worked$SUBJECT == "TOT",]
+emp_hours_worked <- emp_hours_worked %>% 
+  arrange(-Value) 
+
+
+emp_hours_worked %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Hours / worker") %>% 
+ hc_yAxis(title = list(text = "Hours worked, Hours/worker")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Hours worked - Hours per worker, <b>Total in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE))%>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+```
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+
+## Productivity
+
+```{r Reading Productivity, echo = F}
+# Reading data
+productivity_gdp_hour_worked <- vroom("Productivity/GDP_per_hour_worked.csv", col_types = cols())
+
+# Getting view of the data
+
+# View(productivity_gdp_hour_worked)
+```
+
+```{r Productivity Cleaning - Engineering, echo = F}
+# Data cleaning - Feature Engineering
+
+# Productivity GDP Hour worked
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+productivity_gdp_hour_worked <- productivity_gdp_hour_worked[productivity_gdp_hour_worked$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & productivity_gdp_hour_worked$FREQUENCY == "A" & productivity_gdp_hour_worked$MEASURE == "USD", ]
+
+# Different cleaning / Features
+productivity_gdp_hour_worked <- productivity_gdp_hour_worked %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Productivity 📅 </p>
+
+The data set from OECD that I am gonna use to illustrate productivity metric is the following together with its description (citation provided on references):
+
+<p style="text-align: justify;">
+📌 **GDP per hour worked** : GDP per hour worked is a measure of labour productivity. It measures how efficiently labour input is combined with other factors of production and used in the production process. Labour input is defined as total hours worked of all persons engaged in production. Labour productivity only partially reflects the productivity of labour in terms of the personal capacities of workers or the intensity of their effort. The ratio between the output measure and the labour input depends to a large degree on the presence and/or use of other inputs (e.g. capital, intermediate inputs, technical, organisational and efficiency change, economies of scale). This indicator is measured in USD (constant prices 2010 and PPPs) and indices.
+</p>
+
+
+```{r GDP per Hour Worked Chart, echo = F}
+# Plot GDP per hour worked per worker for 2020
+prod_gdp_worked <- productivity_gdp_hour_worked[productivity_gdp_hour_worked$TIME == 2020 & productivity_gdp_hour_worked$SUBJECT == "TOT",]
+prod_gdp_worked <- prod_gdp_worked %>% 
+  arrange(-Value) 
+
+
+prod_gdp_worked %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "GDP Hour worked") %>% 
+ hc_yAxis(title = list(text = "GDP per Hours worked")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "GDP per Hour worked (USD), <b>2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+```
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+## Wages
+
+```{r Reading Wages, echo = F}
+# Reading data
+wage_average <- vroom("Wages/Average_wage.csv", col_types = cols())
+
+# Getting view of the data
+
+# View(wage_average)
+```
+
+
+```{r Wage Cleaning - Engineering, echo = F}
+# Data cleaning - Feature Engineering
+
+# Wage_average 
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+wage_average <- wage_average[wage_average$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & wage_average$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+wage_average <- wage_average %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Wages 💶 </p>
+
+The data set from OECD that I am gonna use to illustrate wage metric is the following together with its description (citation provided on references):
+
+<p style="text-align: justify;">
+📌 **Average wages** : Average wages are obtained by dividing the national-accounts-based total wage bill by the average number of employees in the total economy, which is then multiplied by the ratio of the average usual weekly hours per full-time employee to the average usually weekly hours for all employees. This indicator is measured in USD constant prices using 2016 base year and Purchasing Power Parities (PPPs) for private consumption of the same year.
+</p>
+
+
+```{r Average Wages Chart, echo = F}
+# Plot average wage for 2020
+avg_wage <- wage_average[wage_average$TIME == 2020 & wage_average$SUBJECT == "TOT",]
+avg_wage <- avg_wage %>% 
+  arrange(-Value) 
+
+
+avg_wage %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Average wage (USD)") %>% 
+ hc_yAxis(title = list(text = "Average Wage (USD)")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Average Wage (USD), <b>2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+```
+
+<p style="text-align: justify;">
+The average wage for **Greece** peaked at ~33.974 US Dollars and the latest data of 2020, show a wage average of ~27.207 US Dollars, that is a **decrease of 19.9% in national wage average**.
+</p>
+
+<p style="text-align: justify;">
+From the Countries we are exploring this is the biggest decrease in national average wage with the second place in biggest decrease going to Spain with a national average wage decrease of 9.45% , from peak of 41.883 in 2009 to 37.922 USD in 2020. Italy seems to come third with a decrease of 8.3%. Almost all of the other Countries examined here not only have they not seen a decrease in their national average wage from their respecting peak, but their national average wages are increasing steadily over the years, with most of these countries actually seeing a peak during 2020 where our data information ends. This is also the case for Hungary and Slovakia, since while the data from 2020 show them to have a lower national average wage than Greece, their average wages are steadily increasing over the years.
+</p>
+
+```{r Greece average wage animation, echo = F}
+# Keep only Greece and Total
+average_wage_greece <- wage_average %>% 
+  filter(Country %in% c("Greece")) %>%
+  filter(SUBJECT =="TOT")
+  
+# Plot
+average_wage_greece %>%
+  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
+    geom_line() +
+    geom_point() +
+    scale_color_viridis(discrete = TRUE) +
+    ggtitle("Greece National Average Wage (USD) 1995-2020") +
+    theme_ipsum() +
+    ylab("Average Wage in USD") +
+    transition_reveal(TIME)
+
+# Save at gif:
+# anim_save("Greece_average_wage.gif")
+```
+
+
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+## Population - Demography
+
+```{r Reading Population, echo = F}
+# Reading data
+population_young <- vroom("Population/Young_population.csv", col_types = cols())
+population_old_dependency_ratio <- vroom("Population/Old_age_dependency_ratio.csv", col_types = cols())
+population_fertility <- vroom("Population/Fertility_rates.csv", col_types = cols())
+
+# Getting view of the data
+
+# View(population_young)
+# View(population_old_dependency_ratio)
+# View(population_fertility)
+```
+
+
+```{r Population - Demographic Cleaning - Engineering, echo = F}
+# Data cleaning - Feature Engineering
+
+# Population_young 
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+population_young <- population_young[population_young$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & population_young$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+population_young <- population_young %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+
+# Population_old_dependency_rate
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+population_old_dependency_ratio <- population_old_dependency_ratio[population_old_dependency_ratio$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & population_old_dependency_ratio$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+population_old_dependency_ratio <- population_old_dependency_ratio %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+
+# Population_fertility 
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+population_fertility <- population_fertility[population_fertility$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & population_fertility$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+population_fertility <- population_fertility %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Population - Demography 🧍 </p>
+
+The 3 (three) different data sets from OECD that I am gonna use to illustrate population metrics are the following together with their description (citation provided on references):
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Young Population** : The youth population is defined as those people aged less than15. The share of the dependent population is calculated as total elderly and youth population expressed as a ratio of the total population. The youth-dependency ratio relates the number of young persons that are likely to be dependent on the support of others for their daily needs to the number of those who are capable of providing such support. Demographic trends have a number of implications for government and private spending on pensions, health care, and education, and, more generally, for economic growth and welfare. This indicator is measured as a percentage of population.
+</p>
+
+
+```{r Young Population Chart, echo = F}
+# Plot young population for 2020
+young_pop <- population_young[population_young$TIME == 2020 & population_young$SUBJECT == "TOT",]
+young_pop <- young_pop %>% 
+  arrange(-Value) 
+
+
+young_pop %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "% of Total Population") %>% 
+ hc_yAxis(title = list(text = "% of Total Population")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Young Population % of Total, <b>2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+```
+
+
+```{r Greece animation young population, echo = F}
+# Keep only Greece and Total
+# young_pop_greece <- population_young %>% 
+#  filter(Country %in% c("Greece")) %>%
+#  filter(SUBJECT =="TOT")
+  
+# Plot
+# young_pop_greece %>%
+#  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
+#    geom_line() +
+#    geom_point() +
+#    scale_color_viridis(discrete = TRUE) +
+#    ggtitle("Greece Young Population 1950-2020") +
+#    theme_ipsum() +
+#    ylab("% of Total Population") +
+#    transition_reveal(TIME)
+
+# Save at gif:
+# anim_save("Greece_young_population.gif")
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Old-age dependency ratio** : The old-age to working-age demographic ratio is defined as the number of individuals aged 65 and over per 100 people of working age defined as those at ages 20 to 64. The evolution of old-age to working-age ratios depends on mortality rates, fertility rates and migration. OECD countries have seen prolonged increases in life expectancy that most analysts project to continue, implying an increasing number of older people and most likely of pensioners too. This indicator is meausured as a percentage.
+</p>
+
+
+```{r Old age dependency ratio Chart, echo = F}
+# Plot old age dependency ratio for 2020
+old_age_dep <- population_old_dependency_ratio[population_old_dependency_ratio$TIME == 2021 & population_old_dependency_ratio$SUBJECT == "TOT",]
+old_age_dep <- old_age_dep %>% 
+  arrange(-Value) 
+
+
+old_age_dep %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Total %") %>% 
+ hc_yAxis(title = list(text = "Total %")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Old-age dependency ratio % of Total, <b>2021</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **Fertility rates** : The total fertility rate in a specific year is defined as the total number of children that would be born to each woman if she were to live to the end of her child-bearing years and give birth to children in alignment with the prevailing age-specific fertility rates. It is calculated by totalling the age-specific fertility rates as defined over five-year intervals. Assuming no net migration and unchanged mortality, a total fertility rate of 2.1 children per woman ensures a broadly stable population. Together with mortality and migration, fertility is an element of population growth, reflecting both the causes and effects of economic and social developments. The reasons for the dramatic decline in birth rates during the past few decades include postponed family formation and child-bearing and a decrease in desired family sizes. This indicator is measured in children per woman.
+</p>
+
+
+```{r Fertility rates Chart, echo = F}
+# Plot fertility rates for 2019
+fertility <- population_fertility[population_fertility$TIME == 2019 & population_fertility$SUBJECT == "TOT",]
+fertility <- fertility %>% 
+  arrange(-Value) 
+
+
+fertility %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "Children / Woman") %>% 
+ hc_yAxis(title = list(text = "Children / Woman")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "Fertility Rates (Children/Woman), <b>2019</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+```
+
+
+
+
+```{r Greece animation fertility rates, echo = F}
+# Keep only Greece and Total
+# fertility_greece <- population_fertility %>% 
+#  filter(Country %in% c("Greece")) %>%
+#  filter(SUBJECT =="TOT")
+  
+# Plot
+#fertility_greece %>%
+#  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
+#    geom_line() +
+#    geom_point() +
+#    scale_color_viridis(discrete = TRUE) +
+#    ggtitle("Greece Fertility Rate 1960-2019") +
+#    theme_ipsum() +
+#    ylab("Children / Woman") +
+#    transition_reveal(TIME)
+
+# Save at gif:
+#anim_save("Greece_fertility_rate.gif")
+```
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+## Education
+
+```{r Reading Education, echo = F}
+# Reading data
+education_spending <- vroom("Education/Education_spending.csv", col_types = cols())
+
+# Getting view of the data
+
+# View(education_spending)
+```
+
+
+```{r Education Cleaning - Engineering, echo = F}
+# Data cleaning - Feature Engineering
+
+# Education_spending
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
+education_spending <- education_spending[education_spending$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & education_spending$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+education_spending <- education_spending %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Education 🎓 </p>
+
+
+The data set from OECD that I am gonna use to illustrate education metric is the following together with its description (citation provided on references):
+
+<p style="text-align: justify;">
+📌 **Education spending** : Education spending covers expenditure on schools, universities and other public and private educational institutions. Spending includes instruction and ancillary services for students and families provided through educational institutions. Spending is shown in USD per student and as a percentage of GDP.
+</p>
+
+
+
+```{r Education spending Chart, echo = F}
+# Plot fertility rates for 2019
+#edu_spend <- education_spending[education_spending$TIME == 2019 & education_spending$SUBJECT == "TOT",]
+#edu_spend <- edu_spend %>% 
+#  arrange(-Value) 
+
+
+#edu_spend %>% 
+# hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#001489", name = #"Children / Woman") %>% 
+# hc_yAxis(title = list(text = "Children / Woman")) %>%  
+# hc_xAxis(title = list(text = "Country")) %>% 
+# hc_title(text = "Fertility Rates (Children/Woman), 2019") %>% 
+# hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE))
+```
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+## GDP - Gross Domestic Product
+
+```{r Reading GDP, echo = F}
+# Reading data
+gdp_gross <- vroom("GDP_Economy/GDP.csv", col_types = cols())
+# Getting view of the data
+
+# View(gdp_gross)
+```
+
+
+```{r GDP Cleaning - Engineering, echo = F}
+# Data cleaning - Feature Engineering
+
+# GDP_gross
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency and MEASURE as USD per Capita
+gdp_gross <- gdp_gross[gdp_gross$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & gdp_gross$FREQUENCY == "A" & gdp_gross$MEASURE == "USD_CAP", ]
+
+# Different cleaning / Features
+gdp_gross <- gdp_gross %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+```
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> GDP 💰 </p>
+
+The data set from OECD that I am gonna use to illustrate GDP metric is the following together with its description (citation provided on references):
+
+
+<p style="text-align: justify;">
+📌 **Gross Domestic Product (GDP)** : Gross domestic product (GDP) is the standard measure of the value added created through the production of goods and services in a country during a certain period. As such, it also measures the income earned from that production, or the total amount spent on final goods and services (less imports). While GDP is the single most important indicator to capture economic activity, it falls short of providing a suitable measure of people's material well-being for which alternative indicators may be more appropriate. This indicator is based on nominal GDP (also called GDP at current prices or GDP in value) and is available in different measures: US dollars and US dollars per capita (current PPPs). All OECD countries compile their data according to the 2008 System of National Accounts (SNA). This indicator is less suited for comparisons over time, as developments are not only caused by real growth, but also by changes in prices and PPPs.
+</p>
+
+
+```{r Gross Domestic Product Chart, echo = F}
+# Plot GDP for 2020
+gdp <- gdp_gross[gdp_gross$TIME == 2020 & gdp_gross$SUBJECT == "TOT",]
+gdp <- gdp %>% 
+  arrange(-Value) 
+
+
+gdp %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "US Dollar per capita") %>% 
+ hc_yAxis(title = list(text = "US Dollar per capita")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "GDP - US Dollar per capita, <b>2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+```
+
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+
+# Summary
+
+**GT table with Greece's positions from the selected Countries**
+
+
+```{r Preparing Table for GT summary GREECE, echo = F}
+# Concentrating the data I will use for the GT Greece summary table
+
+# Unemployment Rate total for 2021 - Greece
+unemp_1_grc <- unemployment_rate[unemployment_rate$TIME == 2021 & unemployment_rate$SUBJECT == "TOT" & unemployment_rate$Country == "Greece",]
+unemp_1_grc <- unemp_1_grc %>% 
+  mutate(category = "Unemployment Rate") %>% 
+  mutate(average = mean(unemp_rate_2021_total$Value))
+
+# Unemployment Rate by Education level total for 2020 - Greece
+unemp_2_grc <- unemployment_education[unemployment_education$TIME == 2020 & unemployment_education$SUBJECT == "TRY" & unemployment_education$Country == "Greece",]
+unemp_2_grc <- unemp_2_grc %>% 
+  mutate(category = "Unemployment Rate for Tertiary Education Level") %>% 
+  mutate(average = mean(unemp_rate_2020_tertiary$Value))
+
+# Unemployment Rate Long Term for 2020 - Greece
+unemp_3_grc <- unemployment_long_term[unemployment_long_term$TIME == 2020 & unemployment_long_term$SUBJECT == "TOT" & unemployment_long_term$Country == "Greece",]
+unemp_3_grc <- unemp_3_grc %>% 
+  mutate(category = "Long-term Unemployment Rate") %>% 
+  mutate(average = mean(unemp_rate_2020_long_term$Value))
+
+# Employment Rate total for 2020 - Greece
+emp_1_grc <- employment_rate[employment_rate$TIME == 2020 & employment_rate$SUBJECT == "TOT" & employment_rate$Country == "Greece",]
+emp_1_grc <- emp_1_grc %>% 
+  mutate(category = "Employment Rate") %>% 
+  mutate(average = mean(emp_rate_2020_total$Value))
+
+# Self-Employment Rate total for 2020 - Greece
+emp_2_grc <- employment_self[employment_self$TIME == 2020 & employment_self$SUBJECT == "TOT" & employment_self$Country == "Greece",]
+emp_2_grc <- emp_2_grc %>% 
+  mutate(category = "Self-Employment Rate") %>% 
+  mutate(average = mean(emp_self_2020_total$Value))
+
+# Hours worked total for 2020 - Greece
+emp_3_grc <- employment_hours_worked[employment_hours_worked$TIME == 2020 & employment_hours_worked$SUBJECT == "TOT" & employment_hours_worked$Country == "Greece",]
+emp_3_grc <- emp_3_grc %>% 
+  mutate(category = "Hours Worked") %>% 
+  mutate(average = mean(emp_hours_worked$Value))
+
+# GDP per hour worked total for 2020 - Greece
+prod_1_grc <- prod_gdp_worked[prod_gdp_worked$TIME == 2020 & prod_gdp_worked$SUBJECT == "TOT" & prod_gdp_worked$Country == "Greece",]
+prod_1_grc <- prod_1_grc %>% 
+  mutate(category = "GDP per hour worked") %>% 
+  mutate(average = mean(prod_gdp_worked$Value))
+
+# Average Wage for 2020 - Greece
+wage_1_grc <- wage_average[wage_average$TIME == 2020 & wage_average$SUBJECT == "TOT" & wage_average$Country == "Greece",]
+wage_1_grc <- wage_1_grc %>% 
+  mutate(category = "Average Wage") %>% 
+  mutate(average = mean(avg_wage$Value))
+
+# GDP for 2020 - Greece
+gdp_1_grc <- gdp[gdp$TIME == 2020 & gdp$SUBJECT == "TOT" & gdp$Country == "Greece",]
+gdp_1_grc <- gdp_1_grc %>% 
+  mutate(category = "GDP") %>% 
+  mutate(average = mean(gdp$Value))
+
+# Merge all mini data frames together for the summary table
+greece_summary <- Reduce(function(...) merge(..., all = TRUE),
+       list(unemp_1_grc, unemp_2_grc, unemp_3_grc, emp_1_grc, emp_2_grc, emp_3_grc, prod_1_grc, wage_1_grc, gdp_1_grc))
+```
+
+
+```{r flags, echo = F}
+Countries <- unemployment_rate %>% 
+  group_by(Country, Country_iso2) %>% 
+  summarise(value = sum(Value)) %>% 
+  select(-value)
+
+# Load Flag images
+flags <- Countries%>%
+  mutate(Country = case_when(
+    str_detect(Country,'Australia') ~ 'https://hatscripts.github.io/circle-flags/flags/au.svg',
+    str_detect(Country,'Austria') ~ 'https://hatscripts.github.io/circle-flags/flags/at.svg',
+    str_detect(Country,'Belgium') ~ 'https://hatscripts.github.io/circle-flags/flags/be.svg',
+    str_detect(Country,'Canada') ~ 'https://hatscripts.github.io/circle-flags/flags/ca.svg',
+    str_detect(Country,'Czechia') ~ 'https://hatscripts.github.io/circle-flags/flags/cz.svg',
+    str_detect(Country,'Denmark') ~ 'https://hatscripts.github.io/circle-flags/flags/dk.svg',
+    str_detect(Country,'Estonia') ~ 'https://hatscripts.github.io/circle-flags/flags/ee.svg',
+    str_detect(Country,'Finland') ~ 'https://hatscripts.github.io/circle-flags/flags/fi.svg',
+    str_detect(Country,'France') ~ 'https://hatscripts.github.io/circle-flags/flags/fr.svg',
+    str_detect(Country,'Germany') ~ 'https://hatscripts.github.io/circle-flags/flags/de.svg',
+    str_detect(Country,'Greece') ~ 'https://hatscripts.github.io/circle-flags/flags/gr.svg',
+    str_detect(Country,'Hungary') ~ 'https://hatscripts.github.io/circle-flags/flags/hu.svg',
+    str_detect(Country,'Ireland') ~ 'https://hatscripts.github.io/circle-flags/flags/ie.svg',
+    str_detect(Country,'Italy') ~ 'https://hatscripts.github.io/circle-flags/flags/it.svg',
+    str_detect(Country,'Latvia') ~ 'https://hatscripts.github.io/circle-flags/flags/lv.svg',
+    str_detect(Country,'Lithuania') ~ 'https://hatscripts.github.io/circle-flags/flags/lt.svg',
+    str_detect(Country,'Luxembourg') ~ 'https://hatscripts.github.io/circle-flags/flags/lu.svg',
+    str_detect(Country,'Netherlands') ~ 'https://hatscripts.github.io/circle-flags/flags/nl.svg',
+    str_detect(Country,'Norway') ~ 'https://hatscripts.github.io/circle-flags/flags/no.svg',
+    str_detect(Country,'Poland') ~ 'https://hatscripts.github.io/circle-flags/flags/pl.svg',
+    str_detect(Country,'Portugal') ~ 'https://hatscripts.github.io/circle-flags/flags/pt.svg',
+    str_detect(Country,'Slovakia') ~ 'https://hatscripts.github.io/circle-flags/flags/sk.svg',
+    str_detect(Country,'Slovenia') ~ 'https://hatscripts.github.io/circle-flags/flags/si.svg',
+    str_detect(Country,'Spain') ~ 'https://hatscripts.github.io/circle-flags/flags/es.svg',
+    str_detect(Country,'Sweden') ~ 'https://hatscripts.github.io/circle-flags/flags/se.svg',
+    str_detect(Country,'Switzerland') ~ 'https://hatscripts.github.io/circle-flags/flags/ch.svg',
+    str_detect(Country,'United Kingdom') ~ 'https://hatscripts.github.io/circle-flags/flags/gb.svg',
+    str_detect(Country,'United States') ~ 'https://hatscripts.github.io/circle-flags/flags/us.svg'
+    
+  ))
+
+# rename column
+flags <- rename(flags, Flags = Country)
+```
+
+
+```{r Preparing Table for GT summary ALL COUNTRIES, echo = F}
+# Concentrating the data I will use for the GT ALL Countries summary table
+
+# Unemployment Rate total for 2020 - ALL Countries
+unemp_1_all <- unemployment_rate[unemployment_rate$TIME == 2020 & unemployment_rate$SUBJECT == "TOT",]
+unemp_1_all <- unemp_1_all %>% 
+  mutate(category = "Unemployment Rate") %>% 
+  mutate(average = mean(unemp_rate_2021_total$Value))
+
+# Unemployment Rate by Education level total for 2020 - ALL Countries
+unemp_2_all <- unemployment_education[unemployment_education$TIME == 2020 & unemployment_education$SUBJECT == "TRY",]
+unemp_2_all <- unemp_2_all %>% 
+  mutate(category = "Unemployment Rate for Tertiary Education Level") %>% 
+  mutate(average = mean(unemp_rate_2020_tertiary$Value))
+
+# Unemployment Rate Long Term for 2020 - ALL Countries
+unemp_3_all <- unemployment_long_term[unemployment_long_term$TIME == 2020 & unemployment_long_term$SUBJECT == "TOT",]
+unemp_3_all <- unemp_3_all %>% 
+  mutate(category = "Long-term Unemployment Rate") %>% 
+  mutate(average = mean(unemp_rate_2020_long_term$Value))
+
+# Employment Rate total for 2020 - ALL Countries
+emp_1_all <- employment_rate[employment_rate$TIME == 2020 & employment_rate$SUBJECT == "TOT",]
+emp_1_all <- emp_1_all %>% 
+  mutate(category = "Employment Rate") %>% 
+  mutate(average = mean(emp_rate_2020_total$Value))
+
+# Self-Employment Rate total for 2020 - ALL Countries
+emp_2_all <- employment_self[employment_self$TIME == 2020 & employment_self$SUBJECT == "TOT",]
+emp_2_all <- emp_2_all %>% 
+  mutate(category = "Self-Employment Rate") %>% 
+  mutate(average = mean(emp_self_2020_total$Value))
+
+# Hours worked total for 2020 - ALL Countries
+emp_3_all <- employment_hours_worked[employment_hours_worked$TIME == 2020 & employment_hours_worked$SUBJECT == "TOT",]
+emp_3_all <- emp_3_all %>% 
+  mutate(category = "Hours Worked") %>% 
+  mutate(average = mean(emp_hours_worked$Value))
+
+# GDP per hour worked total for 2020 - ALL Countries
+prod_1_all <- prod_gdp_worked[prod_gdp_worked$TIME == 2020 & prod_gdp_worked$SUBJECT == "TOT",]
+prod_1_all <- prod_1_all %>% 
+  mutate(category = "GDP per hour worked") %>% 
+  mutate(average = mean(prod_gdp_worked$Value))
+
+# Average Wage for 2020 - ALL Countries
+wage_1_all <- wage_average[wage_average$TIME == 2020 & wage_average$SUBJECT == "TOT",]
+wage_1_all <- wage_1_all %>% 
+  mutate(category = "Average Wage") %>% 
+  mutate(average = mean(avg_wage$Value))
+
+# GDP for 2020 - ALL Countries
+gdp_1_all <- gdp[gdp$TIME == 2020 & gdp$SUBJECT == "TOT",]
+gdp_1_all <- gdp_1_all %>% 
+  mutate(category = "GDP") %>% 
+  mutate(average = mean(gdp$Value))
+
+# Merge all mini data frames together for the ALL Countries summary table
+all_summary <- Reduce(function(...) merge(..., all = TRUE),
+    list(unemp_1_all, unemp_2_all, unemp_3_all, emp_1_all, emp_2_all, emp_3_all, prod_1_all, wage_1_all, gdp_1_all))
+
+# Dropping features that I dont need
+all_summary <- all_summary %>% 
+  select(-LOCATION, -SUBJECT)
+
+# Turning long format to wide format by category and adding flags
+all_summary <- all_summary %>% 
+  pivot_wider(names_from = category, id_cols = c(TIME, Country, Country_iso2), values_from = Value)
+
+# merging with flags
+all_summary <- all_summary %>% 
+  inner_join(flags, by = "Country_iso2") %>% 
+  select(-TIME, -Country_iso2) 
+
+# replace NAs with -
+all_summary[is.na(all_summary)] <- 0
+```
+
+
+```{r GT ALL Countries summary Table, echo = F}
+# Create table with ALL Countries data from 2020 metrics from each category to visualize and make new column with code flag
+gt_all <- all_summary %>% 
+  dplyr::select(Country, Flags, `Unemployment Rate`, `Long-term Unemployment Rate`, `Average Wage`, `GDP per hour worked`) %>% 
+  gt() %>% 
+  tab_header(
+    title = md("**Summary OECD Countries Metrics**"),
+    subtitle = "An overview of positions of Countries in OECD metrics 2020"
+  ) %>% 
+   cols_align(
+      align = c("center"),
+      columns = c(everything())
+    ) %>% 
+  data_color(
+    columns = `Unemployment Rate` ,
+    colors = scales::col_numeric(
+      palette = 'RdYlGn',
+      reverse = TRUE,
+      domain = c(0, 17))
+  ) %>% 
+  data_color(
+    columns = `Long-term Unemployment Rate` ,
+    colors = scales::col_numeric(
+      palette = 'RdYlGn',
+      reverse = TRUE,
+      domain = c(0.01, 67))
+  ) %>% 
+  data_color(
+    columns = `Average Wage` ,
+    colors = scales::col_numeric(
+      palette = 'RdYlGn',
+      reverse = FALSE,
+      domain = c(20000, 70000))
+  ) %>% 
+  data_color(
+    columns = `GDP per hour worked` ,
+    colors = scales::col_numeric(
+      palette = 'RdYlGn',
+      reverse = FALSE,
+      domain = c(30, 130))
+  ) %>% 
+  cols_width(
+    Flags ~ px(130)
+  ) %>% 
+  cols_label(
+     Flags = " ",
+     `Unemployment Rate` = md("**Unemployment Rate**"),
+     `Average Wage` = md("**Average Wage**"),
+     `GDP per hour worked` = md("**GDP/hour worked**"),
+      `Long-term Unemployment Rate`= md("**Long-term Unemployment**")) %>%    # Put the Flag here
+  fmt_number(columns = `Average Wage`, suffixing = TRUE) %>% 
+  fmt(
+    columns = `Long-term Unemployment Rate`,
+    fns = function(x) ifelse(x == 0, " — ", all_summary$`Long-term Unemployment Rate`)) %>% 
+  opt_table_font(
+    font = list(
+      google_font(name = "Lato")
+    )
+  ) %>% 
+  tab_source_note(source_note = "OECD 2020 Data") %>%
+  tab_options(source_notes.padding = px(14)) %>% 
+  gtExtras::gt_theme_nytimes()%>%
+  gtExtras::gt_img_rows(columns = Flags, img_source = "web", height = 30)
+  
+gt_all
+```
+
+
+
+
+```{r GT Greece summary Table, echo = F}
+# Create table with Greece's last updated data metrics from each category to visualize and make new column with code flag
+gt_greece <- greece_summary %>% 
+  dplyr::select(category, TIME, Value, average) %>% 
+  gt() %>% 
+  tab_header(
+    title = md("**Summary Greece Positions**"),
+    subtitle = "An overview of positions of Greece in OECD metrics"
+  ) %>% 
+   cols_align(
+      align = c("center"),
+      columns = c(everything())
+    ) %>% 
+  cols_label(
+     category = " ",
+     TIME = md("**Year of Data**"),
+    	Value = md("**Greece**"),   # Put the Flag here
+     average = md("**Average**")) %>% 
+  fmt_number(columns = average, decimals = 2, sep_mark = " ") %>%
+  fmt_number(columns = Value, decimals = 2, sep_mark = " ") %>%
+  # fmt_number(rows = row == 6,  suffixing = TRUE) %>%
+  #fmt_number(rows = 7,  suffixing = TRUE) %>%
+  opt_table_font(
+    font = list(
+      google_font(name = "Lato")
+    )
+  ) %>% 
+  tab_source_note(source_note = "Countries used") %>%
+  tab_options(source_notes.padding = px(14))
+  
+gt_greece
+```
+
+
+
+
+
+# Conclusion
+
+On a personal note, from my own experiences and knowledge, the opportunities, as well as the working conditions that exist in Greece are very much indicative of what one would expect from a country with these metrics.
+
+
+
+
+
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> References 📚 </p>
+
+OECD (2022), Unemployment rate (indicator). doi: 10.1787/52570002-en (Accessed on 08 February 2022)
+
+OECD (2022), Unemployment rate by age group (indicator). doi: 10.1787/997c8750-en (Accessed on 08 February 2022)
+
+OECD (2022), Unemployment rates by education level (indicator). doi: 10.1787/6183d527-en (Accessed on 08 February 2022)
+
+OECD (2022), Long-term unemployment rate (indicator). doi: 10.1787/76471ad5-en (Accessed on 08 February 2022)
+
+OECD (2022), Youth unemployment rate (indicator). doi: 10.1787/c3634df7-en (Accessed on 08 February 2022)
+
+OECD (2022), Employment rate (indicator). doi: 10.1787/1de68a9b-en (Accessed on 08 February 2022)
+
+OECD (2022), Employment rate by age group (indicator). doi: 10.1787/084f32c7-en (Accessed on 08 February 2022)
+
+OECD (2022), Employment by education level (indicator). doi: 10.1787/26f676c7-en (Accessed on 08 February 2022)
+
+OECD (2022), Self-employment rate (indicator). doi: 10.1787/fb58715e-en (Accessed on 08 February 2022)
+
+OECD (2022), Hours worked (indicator). doi: 10.1787/47be1c78-en (Accessed on 08 February 2022)
+
+OECD (2022), GDP per hour worked (indicator). doi: 10.1787/1439e590-en (Accessed on 08 February 2022)
+
+OECD (2022), Average wages (indicator). doi: 10.1787/cc3e1387-en (Accessed on 08 February 2022)
+
+OECD (2022), Young population (indicator). doi: 10.1787/3d774f19-en (Accessed on 08 February 2022)
+
+OECD (2022), Old-age dependency ratio (indicator). doi: 10.1787/e0255c98-en (Accessed on 08 February 2022)
+
+OECD (2022), Fertility rates (indicator). doi: 10.1787/8272fb01-en (Accessed on 08 February 2022)
+
+OECD (2022), Gross domestic product (GDP) (indicator). doi: 10.1787/dc2f7aec-en (Accessed on 08 February 2022)
+
+OECD (2022), Education spending (indicator). doi: 10.1787/ca274bac-en (Accessed on 08 February 2022)
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> End 🏁 </p>
