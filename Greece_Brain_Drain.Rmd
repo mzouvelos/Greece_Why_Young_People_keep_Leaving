@@ -10,7 +10,6 @@ output:
     toc_depth: 2
     fig_width: 7
     fig_height: 4.5
-    code_folding: hide
     df_print: paged
     theme: cosmo
     highlight: tango
@@ -39,35 +38,30 @@ options(dplyr.summarise.inform = FALSE)
 # Introduction
 
 <p style="text-align: justify;">
-Some weeks ago I had a very interesting discussion with a new friend of mine from the distant beautiful Peru while being in Utrecht. The discussion was around if Greece is in really such a bad economic spot, as me and some other Greeks probably told her many times that for many immigration is not a choice rather a necessity to find a good life quality. She didn't seem to understand it at first although a very knowledgeable person as in her eyes Greece is still a Western European Country, that is very well of better than other Countries especially from Southern America.  So I hope that exploring the data will shed some more light into our interesting conversation. (for my Peruvian friend Daniella)
+Some weeks ago, in Utrecht, I had a fascinating discussion with my new friend Daniella from distant beautiful Peru. The discussion was around if Greece is really in such a poor economic spot. Since other Greeks and I probably told her many times that immigration is not always a choice but more of a necessity to find a good life quality, work-life balance, and mostly, opportunities that you can chase with your skills and strength. Even though she knew a lot concerning Greece, I feel like many others; she was still under the impression that despite the difficulties, Greece is still a European country. Thus, it should have some prosperous conditions for its young population to have a career and draw their future. And I do not blame her, as coming from South America who, from my knowledge, have their own economic situations, I would probably have the same questions. So I hope that exploring these data will shed some light on our exciting conversation.
 </p>
 
 <p style="text-align: justify;">
-Is it time for Greek immigrants to return home and brain-drain turn to brain-gain? Do the brains have anything to gain also regarding their financial well-being? Lets explore some data so at the end anyone can take his own conclusions if it's time to return to Greece.
+Is it time for Greeks to return home and brain-drain turn to brain-gain? I will try to explore some data so at the end anyone can make up his own conclusions.
 </p>
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Notes 📝 </p>
 
 <p style="text-align: justify;">
-- The data that I will use are from OECD org....
-</p>
-
-<p style="text-align: justify;">
-- I will use data only from Countries within the European Union as most of Greek immigrants etc. are located and working in other European Countries and not at least so much on Costa Rica or Mexico for example. United Kingdom will be an exemption as will be Australia too since there are a lot of Greek immigrants in Australia from my knowledge, so it will also be included... USA & Canada too
-So Korea, Japan, Mexico, Costa Rica ...... etc will be excluded
+I will use data from the [OECD organization](https://www.oecd.org/). The Organization for Economic Co-operation and Development (OECD) is a unique forum where the governments of 37 democracies with market-based economies collaborate to develop policy standards to promote sustainable economic growth. 
 </p>
 
 
 <p style="text-align: justify;">
-**All the Countries that are included in the OECD data are**: Australia, Austria, Belgium, Canada, Chile, Colombia, Czechia, Denmark, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Japan, South Korea, Luxembourg, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Slovakia, Spain, Sweden, Switzerland, Turkey, United Kingdom, United States, Chile, Estonia, Israel, Slovenia, Latvia, Lithuania, Colombia, Costa Rica and the indexes OECD, G-7, EA19, EU27_2020.
+**All the Countries - members that are included in the OECD data are**: Australia, Austria, Belgium, Canada, Chile, Colombia, Czechia, Denmark, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Japan, South Korea, Luxembourg, Mexico, Netherlands, New Zealand, Norway, Poland, Portugal, Slovakia, Spain, Sweden, Switzerland, Turkey, United Kingdom, United States, Chile, Estonia, Israel, Slovenia, Latvia, Lithuania, Colombia, Costa Rica and the indexes OECD, G-7, EA19, EU27_2020.
 </p>
 
 <p style="text-align: justify;">
-- I will use data only from Countries within the European Union as most of Greek immigrants etc. are located and working in other European Countries and not at least so much on Costa Rica or Mexico for example. United Kingdom, USA, Canada and Australia will also be included as there are a lot of Greeks located in these countries.
+For the purpose of this analysis, I will use data only from Countries within the European Union as most Greek immigrants etc., are located and working in other European Countries and not at least so much in Costa Rica or Mexico, for example. United Kingdom, USA, Canada, and Australia will also be included as there are a lot of Greeks located and working in these countries.
 </p>
 
 <p style="text-align: justify;">
-So the **Countries that will be included** will be the following: Austria, Belgium, Czech Republic (Czechia), Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Ireland, Italy, Latvia, Lithuania, Luxembourg, Netherlands, Norway, Poland, Portugal, Slovakia, Spain, Sweden, Switzerland, United Kingdom, United States, Canada and Australia.
+The **Countries that will be included** for the analysis and the graphs will be the following: Austria, Belgium, Czech Republic (Czechia), Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Ireland, Italy, Latvia, Lithuania, Luxembourg, Netherlands, Norway, Poland, Portugal, Slovakia, Spain, Sweden, Switzerland, United Kingdom, United States, Canada and Australia.
 </p>
 
 ```{r loading packages, echo = F}
@@ -92,16 +86,14 @@ pacman::p_load(tidyverse, vroom, xts, glue, visdat, naniar, rmarkdown, dlookr, h
 # Reading data
 unemployment_rate <- vroom("Unemployment/Unemployment_rate.csv", col_types = cols())
 unemployment_age_group <- vroom("Unemployment/Unemployment_rate_by_age_group.csv", col_types = cols())
-unemployment_forecast <- vroom("Unemployment/Unemployment_rate_forecast.csv", col_types = cols())
-unemployment_education <- vroom("Unemployment/Unemployment_rates_by_education_level.csv", col_types = cols())
 unemployment_long_term <- vroom("Unemployment/Long_term_unemployment_rate.csv", col_types = cols())
+unemployment_education <- vroom("Unemployment/Unemployment_rates_by_education_level.csv", col_types = cols())
 unemployment_youth <- vroom("Unemployment/Youth_unemployment_rate.csv", col_types = cols())
 
 # Getting view of the data
 
 # View(unemployment_rate)
 # View(unemployment_age_group)
-# View(unemployment_forecast)
 # View(unemployment_education)
 # View(unemployment_long_term)
 # View(unemployment_youth)
@@ -145,22 +137,6 @@ unemployment_age_group$TIME <- sapply(unemployment_age_group$TIME, FUN = functio
 unemployment_age_group$TIME <- unemployment_age_group$TIME %>% 
   as.numeric(unemployment_age_group$TIME)
 
-# Unemployment_forecast 
-
-# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
-unemployment_forecast <- unemployment_forecast[unemployment_forecast$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & unemployment_forecast$FREQUENCY == "A", ]
-
-# Different cleaning / Features
-unemployment_forecast <- unemployment_forecast %>% 
-  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
-  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
-  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
-  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
-
-# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
-unemployment_forecast$TIME <- sapply(unemployment_forecast$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
-unemployment_forecast$TIME <- unemployment_forecast$TIME %>% 
-  as.numeric(unemployment_forecast$TIME)
 
 # Unemployment_education
 
@@ -206,8 +182,9 @@ unemployment_youth$TIME <- unemployment_youth$TIME %>%
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Unemployment 📉 </p>
 
-
-The 5 (five) different data sets from OECD that I am gonna use to illustrate unemployment metrics, are the following together with their description (citation provided on references):
+<p style="text-align: justify;">
+The 5 (five) different data sets from OECD that I am gonna use to illustrate unemployment metrics, are the following together with their description (citation provided on references): **Unemployment Rate** , **Unemployment Rate by Age Group** , **Unemployment Rates by Education Level** , **Long-term Unemployment Rate** and **Youth Unemployment Rate**
+</p>
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
@@ -302,7 +279,6 @@ hw_grid(p1,p2,p3, ncol = 1, rowheight = 300) %>%
 ```
 
 
-- A **first place** in Unemployment rate % for Greece in 2021 among these Countries.
 
 ```{r Greece animation unemployment rate, echo = F}
 # Keep only Greece and Total
@@ -394,7 +370,6 @@ hw_grid(p1,p2, ncol = 1, rowheight = 300) %>%
 ```
 
 
-- Another **first place** in Unemployment for Greece in 2021 among these Countries, both for the ages 25 to 74 and in the young ages of 15 to 24.
 
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
@@ -486,7 +461,6 @@ hw_grid(p1,p2,p3, ncol = 1, rowheight = 400) %>%
   htmltools::browsable()
 ```
 
-- Greece takes first spot in unemployment rates by education level for people who have graduated High School (upper-secondary) and Higher Education e.g. Universities etc. (Tertiary).
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
@@ -526,7 +500,6 @@ unemp_rate_2020_long_term %>%
 
 ```
 
-- Greece first spot again with a sounding 66.51%.
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
@@ -610,7 +583,6 @@ hw_grid(p1,p2, ncol = 1, rowheight = 400) %>%
 employment_rate <- vroom("Employment/Employment_rate.csv", col_types = cols())
 employment_age_group <- vroom("Employment/Employment_rate_by_age_group.csv", col_types = cols())
 employment_education <- vroom("Employment/Employment_by_education_level.csv", col_types = cols())
-employment_activity <- vroom("Employment/Employment_by_activity.csv", col_types = cols())
 employment_self <- vroom("Employment/Self_employment_rate.csv", col_types = cols())
 employment_hours_worked <- vroom("Employment/Hours_worked.csv", col_types = cols())
 
@@ -674,22 +646,7 @@ employment_education <- employment_education %>%
   select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
   mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
 
-# Employment_activity
 
-# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
-employment_activity <- employment_activity[employment_activity$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & employment_activity$FREQUENCY == "A", ]
-
-# Different cleaning / Features
-employment_activity <- employment_activity %>% 
-  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
-  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
-  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
-  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency 
-
-# Turning character TIME feature to numeric and keeping only the Year - *ONLY when the data set has TIME as a character data type
-employment_activity$TIME <- sapply(employment_activity$TIME, FUN = function(x) {strsplit(x, split = '[-]')[[1]][1]})
-employment_activity$TIME <- employment_activity$TIME %>% 
-  as.numeric(employment_activity$TIME)
 
 # Employment_self_employment
 
@@ -719,8 +676,9 @@ employment_hours_worked <- employment_hours_worked %>%
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Employment 💼 </p>
 
-
-The 5 (five) different data sets from OECD that I am gonna use to illustrate employment metrics are the following together with their description (citation provided on references):
+<p style="text-align: justify;">
+The 5 (five) different data sets from OECD that I am gonna use to illustrate employment metrics are the following together with their description (citation provided on references): **Employment Rate** , **Employment Rate by Age Group** , **Employment Rate by Education Level** , **Self-employment Rate** and **Hours Worked**
+</p>
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
@@ -812,28 +770,7 @@ hw_grid(p1,p2,p3, ncol = 1, rowheight = 400) %>%
 ```
 
 
-```{r Greece animation employment, echo = F}
-# Keep only Greece and Total
-# emp_greece <- employment_rate %>% 
-#  filter(Country %in% c("Greece")) %>%
-#  filter(SUBJECT =="TOT")
-  
-# Plot
-# emp_greece %>%
-#  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
-#    geom_line() +
-#    geom_point() +
-#    scale_color_viridis(discrete = TRUE) +
-#    ggtitle("Greece Employment Rate % (1998-2020)") +
-#    theme_ipsum() +
-#    ylab("Employment rate %") +
-#    transition_reveal(TIME)
-
-# Save at gif:
-# anim_save("Greece_employment.gif")
-```
-
-
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
 <p style="text-align: justify;">
 📌 **Employment rate by age group** : The employment rate for a given age group is measured as the number of employed people of a given age as a percentage of the total number of people in that same age group. Employed people are defined as those aged 15 and over who report that they have worked in gainful employment for at least one hour in the previous week or who had a job but were absent from work during the reference week while having a formal job attachment. Employment rates are shown for four age groups: people aged 15-64 (the working age population): people aged 15 to 24 (those just entering the labour market following education); people aged 25 to 54 (those in their prime working lives); people aged 55 to 64 (those passing the peak of their career and approaching retirement). This indicator is seasonally adjusted and it is measured as a percentage in same age group.
@@ -1174,7 +1111,12 @@ productivity_gdp_hour_worked <- productivity_gdp_hour_worked %>%
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Productivity 📅 </p>
 
+<p style="text-align: justify;">
 The data set from OECD that I am gonna use to illustrate productivity metric is the following together with its description (citation provided on references):
+**GDP per Hour Worked**
+</p>
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
 <p style="text-align: justify;">
 📌 **GDP per hour worked** : GDP per hour worked is a measure of labour productivity. It measures how efficiently labour input is combined with other factors of production and used in the production process. Labour input is defined as total hours worked of all persons engaged in production. Labour productivity only partially reflects the productivity of labour in terms of the personal capacities of workers or the intensity of their effort. The ratio between the output measure and the labour input depends to a large degree on the presence and/or use of other inputs (e.g. capital, intermediate inputs, technical, organisational and efficiency change, economies of scale). This indicator is measured in USD (constant prices 2010 and PPPs) and indices.
@@ -1246,7 +1188,11 @@ wage_average <- wage_average %>%
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Wages 💶 </p>
 
-The data set from OECD that I am gonna use to illustrate wage metric is the following together with its description (citation provided on references):
+<p style="text-align: justify;">
+The data set from OECD that I am gonna use to illustrate wage metric is the following together with its description (citation provided on references): **Average Wages**
+</p>
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
 <p style="text-align: justify;">
 📌 **Average wages** : Average wages are obtained by dividing the national-accounts-based total wage bill by the average number of employees in the total economy, which is then multiplied by the ratio of the average usual weekly hours per full-time employee to the average usually weekly hours for all employees. This indicator is measured in USD constant prices using 2016 base year and Purchasing Power Parities (PPPs) for private consumption of the same year.
@@ -1282,13 +1228,7 @@ avg_wage %>%
   ")))
 ```
 
-<p style="text-align: justify;">
-The average wage for **Greece** peaked at ~33.974 US Dollars and the latest data of 2020, show a wage average of ~27.207 US Dollars, that is a **decrease of 19.9% in national wage average**.
-</p>
 
-<p style="text-align: justify;">
-From the Countries we are exploring this is the biggest decrease in national average wage with the second place in biggest decrease going to Spain with a national average wage decrease of 9.45% , from peak of 41.883 in 2009 to 37.922 USD in 2020. Italy seems to come third with a decrease of 8.3%. Almost all of the other Countries examined here not only have they not seen a decrease in their national average wage from their respecting peak, but their national average wages are increasing steadily over the years, with most of these countries actually seeing a peak during 2020 where our data information ends. This is also the case for Hungary and Slovakia, since while the data from 2020 show them to have a lower national average wage than Greece, their average wages are steadily increasing over the years.
-</p>
 
 ```{r Greece average wage animation, echo = F}
 # Keep only Greece and Total
@@ -1311,7 +1251,33 @@ average_wage_greece %>%
 # anim_save("Greece_average_wage.gif")
 ```
 
+**Key Insight**
 
+<p style="text-align: justify;">
+According to the OECD available data, the **average wage for Greece** peaked at ~33.974 US Dollars in *2009*. The latest available data of *2020* show an average wage of ~27.207 US Dollars, **a decrease of 19.9% in the national wage average**, from its peak in the last 30 years where OECD provides data for the respecting category.
+</p>
+
+<p style="text-align: justify;">
+From the Countries we are exploring, this is the most considerable decrease in the national average wage, with the second place in most significant decrease going to Spain with a national average wage decrease of 9.45%, from a peak of 41.883 in 2009 to 37.922 USD in 2020. Italy seems to come third with a decrease of 8.3%. Almost all of the other Countries considered have not seen a decrease in their national average wage from their respective peak. Still, their national average wages are increasing steadily over the years, with most of these countries reaching their peak during 2020, where our data information ends. This is also the case for Hungary and Slovakia. While the data from 2020 shows them to have a lower national average wage than Greece, their average wages are steadily increasing over the years.
+</p>
+
+```{r, echo = F}
+# Keep Greece, Slovakia, Hungary, Spain, Italy
+average_wage_summary <- wage_average %>% 
+  filter(Country %in% c("Greece", "Slovakia" , "Hungary" , "Spain", "Italy")) %>%
+  filter(SUBJECT =="TOT")
+  
+# Plot
+average_wage_summary %>%
+  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
+    geom_line() +
+    geom_point() +
+    scale_color_viridis(discrete = TRUE) +
+    ggtitle("Average Wages (USD) 1995-2020") +
+    theme_ipsum() +
+    ylab("Average Wage in USD") 
+   # transition_reveal(TIME)
+```
 
 **Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
 
@@ -1377,7 +1343,9 @@ population_fertility <- population_fertility %>%
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Population - Demography 🧍 </p>
 
-The 3 (three) different data sets from OECD that I am gonna use to illustrate population metrics are the following together with their description (citation provided on references):
+<p style="text-align: justify;">
+The 3 (three) different data sets from OECD that I am gonna use to illustrate population metrics are the following together with their description (citation provided on references): **Young Population** , **Old-age dependency ratio** and **Fertility Rates**
+</p>
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
@@ -1416,26 +1384,6 @@ young_pop %>%
 ```
 
 
-```{r Greece animation young population, echo = F}
-# Keep only Greece and Total
-# young_pop_greece <- population_young %>% 
-#  filter(Country %in% c("Greece")) %>%
-#  filter(SUBJECT =="TOT")
-  
-# Plot
-# young_pop_greece %>%
-#  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
-#    geom_line() +
-#    geom_point() +
-#    scale_color_viridis(discrete = TRUE) +
-#    ggtitle("Greece Young Population 1950-2020") +
-#    theme_ipsum() +
-#    ylab("% of Total Population") +
-#    transition_reveal(TIME)
-
-# Save at gif:
-# anim_save("Greece_young_population.gif")
-```
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
@@ -1511,102 +1459,23 @@ fertility %>%
 
 
 
-
-```{r Greece animation fertility rates, echo = F}
-# Keep only Greece and Total
-# fertility_greece <- population_fertility %>% 
-#  filter(Country %in% c("Greece")) %>%
-#  filter(SUBJECT =="TOT")
-  
-# Plot
-#fertility_greece %>%
-#  ggplot( aes(x=TIME, y=Value, group=Country, color=Country)) +
-#    geom_line() +
-#    geom_point() +
-#    scale_color_viridis(discrete = TRUE) +
-#    ggtitle("Greece Fertility Rate 1960-2019") +
-#    theme_ipsum() +
-#    ylab("Children / Woman") +
-#    transition_reveal(TIME)
-
-# Save at gif:
-#anim_save("Greece_fertility_rate.gif")
-```
-
 **Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
 
 **Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
+
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
-## Education
-
-```{r Reading Education, echo = F}
-# Reading data
-education_spending <- vroom("Education/Education_spending.csv", col_types = cols())
-
-# Getting view of the data
-
-# View(education_spending)
-```
-
-
-```{r Education Cleaning - Engineering, echo = F}
-# Data cleaning - Feature Engineering
-
-# Education_spending
-
-# filtering the Countries we will use and Keeping only the Data that are Annual Frequency
-education_spending <- education_spending[education_spending$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & education_spending$FREQUENCY == "A", ]
-
-# Different cleaning / Features
-education_spending <- education_spending %>% 
-  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
-  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
-  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
-  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
-```
-
-<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> Education 🎓 </p>
-
-
-The data set from OECD that I am gonna use to illustrate education metric is the following together with its description (citation provided on references):
-
-<p style="text-align: justify;">
-📌 **Education spending** : Education spending covers expenditure on schools, universities and other public and private educational institutions. Spending includes instruction and ancillary services for students and families provided through educational institutions. Spending is shown in USD per student and as a percentage of GDP.
-</p>
-
-
-
-```{r Education spending Chart, echo = F}
-# Plot fertility rates for 2019
-#edu_spend <- education_spending[education_spending$TIME == 2019 & education_spending$SUBJECT == "TOT",]
-#edu_spend <- edu_spend %>% 
-#  arrange(-Value) 
-
-
-#edu_spend %>% 
-# hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#001489", name = #"Children / Woman") %>% 
-# hc_yAxis(title = list(text = "Children / Woman")) %>%  
-# hc_xAxis(title = list(text = "Country")) %>% 
-# hc_title(text = "Fertility Rates (Children/Woman), 2019") %>% 
-# hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE))
-```
-
-**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
-
-**Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
-
-<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
-
-## GDP - Gross Domestic Product
+## GDP - Debt
 
 ```{r Reading GDP, echo = F}
 # Reading data
 gdp_gross <- vroom("GDP_Economy/GDP.csv", col_types = cols())
+gdp_debt <- vroom("GDP_Economy/General_Government_debt.csv", col_types = cols())
 # Getting view of the data
 
 # View(gdp_gross)
+# View(gdp_debt)
 ```
 
 
@@ -1624,12 +1493,25 @@ gdp_gross <- gdp_gross %>%
   mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
   select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
   mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
+
+# GDP_debt
+
+# filtering the Countries we will use and Keeping only the Data that are Annual Frequency and MEASURE as USD per Capita
+gdp_debt <- gdp_debt[gdp_debt$LOCATION %in% c("AUS","AUT", "BEL", "CAN", "CZE", "DNK", "FIN", "FRA", "DEU", "GRC", "HUN", "IRL", "ITA","LUX","NLD", "NOR", "POL", "PRT", "SVK", "ESP", "SWE", "CHE", "GBR", "USA", "EST", "SVN", "LVA", "LTU") & gdp_debt$FREQUENCY == "A", ]
+
+# Different cleaning / Features
+gdp_debt <- gdp_debt %>% 
+  mutate(Country = countrycode(LOCATION, origin = 'iso3c', destination = 'country.name') ) %>% # creating Country name feature
+  mutate(Country_iso2 = countrycode(LOCATION, origin = 'iso3c' , destination = 'iso2c') ) %>%  # creating Country iso2 code feature
+  select(-`Flag Codes`, -INDICATOR, -MEASURE, -FREQUENCY) %>% # removing Flag Codes column, INDICATOR column, MEASURE column and FREQUENCY column
+  mutate_at(vars(Value), funs(round(., 2)))  # rounding feature Value to the second decimal point for consistency
 ```
 
-<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> GDP 💰 </p>
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> GDP - Debt 💰 </p>
 
-The data set from OECD that I am gonna use to illustrate GDP metric is the following together with its description (citation provided on references):
+The 2 (two) different data sets from OECD that I am gonna use to illustrate population metrics are the following together with their description (citation provided on references): **Gross Domestic Product (GDP)** and **General Government Debt**
 
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
 <p style="text-align: justify;">
 📌 **Gross Domestic Product (GDP)** : Gross domestic product (GDP) is the standard measure of the value added created through the production of goods and services in a country during a certain period. As such, it also measures the income earned from that production, or the total amount spent on final goods and services (less imports). While GDP is the single most important indicator to capture economic activity, it falls short of providing a suitable measure of people's material well-being for which alternative indicators may be more appropriate. This indicator is based on nominal GDP (also called GDP at current prices or GDP in value) and is available in different measures: US dollars and US dollars per capita (current PPPs). All OECD countries compile their data according to the 2008 System of National Accounts (SNA). This indicator is less suited for comparisons over time, as developments are not only caused by real growth, but also by changes in prices and PPPs.
@@ -1665,6 +1547,42 @@ gdp %>%
   ")))
 ```
 
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
+
+<p style="text-align: justify;">
+📌 **General Government Debt** : General government debt-to-GDP ratio measures the gross debt of the general government as a percentage of GDP. It is a key indicator for the sustainability of government finance. Debt is calculated as the sum of the following liability categories (as applicable): currency and deposits; debt securities, loans; insurance, pensions and standardized guarantee schemes, and other accounts payable. Changes in government debt over time primarily reflect the impact of past government deficits.
+</p>
+
+```{r GDP Government Debt Chart, echo = F}
+# Plot General Government Debt for 2020
+gdp_chart_debt <- gdp_debt[gdp_debt$TIME == 2020 & gdp_debt$SUBJECT == "TOT",]
+gdp_chart_debt <- gdp_chart_debt %>% 
+  arrange(-Value) 
+
+
+gdp_chart_debt %>% 
+ hchart(type = 'column', options3d = list(enabled = TRUE, alpha = 15, beta = 15), hcaes(x = reorder(Country,Value), y = Value), color = "#d3d3d3", name = "% of Total GDP") %>% 
+ hc_yAxis(title = list(text = "% of Total GDP")) %>%  
+ hc_xAxis(title = list(text = "Country")) %>% 
+ hc_title(text = "General Government Debt, <b> Total % in 2020</b>", style = list(color = "#FF0000", useHTML = TRUE)) %>% 
+ hc_plotOptions(series = list(stacking = FALSE, allowPointSelect = TRUE)) %>%
+  hc_chart(events = list(load = JS("function() {
+        let chart = this,
+          x;
+
+        chart.series[0].points.forEach(p => {
+          if (p.Country === 'Greece') {
+            x = p.x;
+            p.graphic.element.style.fill = '#001489'
+          }
+        })
+
+        chart.xAxis[0].ticks[x].label.element.style.fill = '#001489'
+      }
+  ")))
+```
+
+
 
 **Return to the tabbed sections to see more by clicking here 👉 [Overview]!**
 
@@ -1675,7 +1593,7 @@ gdp %>%
 
 # Summary
 
-**GT table with Greece's positions from the selected Countries**
+  
 
 
 ```{r Preparing Table for GT summary GREECE, echo = F}
@@ -1738,6 +1656,11 @@ gdp_1_grc <- gdp_1_grc %>%
 # Merge all mini data frames together for the summary table
 greece_summary <- Reduce(function(...) merge(..., all = TRUE),
        list(unemp_1_grc, unemp_2_grc, unemp_3_grc, emp_1_grc, emp_2_grc, emp_3_grc, prod_1_grc, wage_1_grc, gdp_1_grc))
+
+# Custom arrange for the order I want in the table
+greece_summary <- greece_summary %>% 
+  mutate(order = c(1:9)) %>% 
+  arrange(match(order, c(8,9,4,3,1,5,2,6,7)))
 ```
 
 
@@ -1865,14 +1788,15 @@ all_summary[is.na(all_summary)] <- 0
 ```
 
 
+
 ```{r GT ALL Countries summary Table, echo = F}
 # Create table with ALL Countries data from 2020 metrics from each category to visualize and make new column with code flag
 gt_all <- all_summary %>% 
-  dplyr::select(Country, Flags, `Unemployment Rate`, `Long-term Unemployment Rate`, `Average Wage`, `GDP per hour worked`) %>% 
+  dplyr::select(Country, Flags, `Unemployment Rate`, `Long-term Unemployment Rate`, `Average Wage`, `Hours Worked`, `GDP per hour worked`, GDP) %>% 
   gt() %>% 
   tab_header(
-    title = md("**Summary OECD Countries Metrics**"),
-    subtitle = "An overview of positions of Countries in OECD metrics 2020"
+    title = md("**Summary - Key Country Metrics**"),
+    subtitle = md("An overview of Country OECD data for the year **2020**")
   ) %>% 
    cols_align(
       align = c("center"),
@@ -1898,6 +1822,13 @@ gt_all <- all_summary %>%
       palette = 'RdYlGn',
       reverse = FALSE,
       domain = c(20000, 70000))
+   )  %>% 
+  data_color(
+    columns = `Hours Worked` ,
+    colors = scales::col_numeric(
+      palette = 'RdYlGn',
+      reverse = TRUE,
+      domain = c(1300, 1800))
   ) %>% 
   data_color(
     columns = `GDP per hour worked` ,
@@ -1905,56 +1836,114 @@ gt_all <- all_summary %>%
       palette = 'RdYlGn',
       reverse = FALSE,
       domain = c(30, 130))
+   ) %>% 
+  data_color(
+    columns = GDP ,
+    colors = scales::col_numeric(
+      palette = 'Blues',
+      reverse = FALSE,
+      domain = c(25000, 120000))
   ) %>% 
   cols_width(
     Flags ~ px(130)
   ) %>% 
   cols_label(
      Flags = " ",
-     `Unemployment Rate` = md("**Unemployment Rate**"),
-     `Average Wage` = md("**Average Wage**"),
-     `GDP per hour worked` = md("**GDP/hour worked**"),
-      `Long-term Unemployment Rate`= md("**Long-term Unemployment**")) %>%    # Put the Flag here
-  fmt_number(columns = `Average Wage`, suffixing = TRUE) %>% 
+     `Unemployment Rate` = md("**Unemployment Rate,<br>ratio in %**"),
+     `Average Wage` = md("**Average Wage,<br>in USD**"),
+     `Hours Worked` = md("**Hours Worked,<br> Annual Hrs**"),
+     `GDP per hour worked` = md("**GDP/hour worked,<br>in USD**"),
+     GDP = md("**GDP,<br> USD per capita**"),
+      `Long-term Unemployment Rate`= md("**Long-term Unemployment,<br>ratio in %**")) %>%  
   fmt(
     columns = `Long-term Unemployment Rate`,
     fns = function(x) ifelse(x == 0, " — ", all_summary$`Long-term Unemployment Rate`)) %>% 
+  fmt_currency(
+    columns = vars(`Average Wage`, `GDP per hour worked`, GDP ),
+    currency = "USD",
+    suffixing = TRUE
+  ) %>% 
+  fmt_percent(
+    columns = vars(`Unemployment Rate`, `Long-term Unemployment Rate`),
+    scale_value = FALSE
+  ) %>% 
   opt_table_font(
     font = list(
       google_font(name = "Lato")
     )
   ) %>% 
-  tab_source_note(source_note = "OECD 2020 Data") %>%
+  tab_source_note(source_note = md("[**OECD org**](https://www.oecd.org/) 2020 Data ")) %>%
+  tab_footnote(
+    footnote = "Grey fields for data that are not updated from OECD.org  for 2020",
+    locations = cells_column_labels(columns = `Long-term Unemployment Rate`)
+  ) %>% 
   tab_options(source_notes.padding = px(14)) %>% 
-  gtExtras::gt_theme_nytimes()%>%
+  gtExtras::gt_theme_nytimes() %>%
   gtExtras::gt_img_rows(columns = Flags, img_source = "web", height = 30)
   
 gt_all
 ```
 
 
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
+# Conclusion
+
+***Home that our feet may leave, but not our hearts. — Oliver Wendell Holmes***
+
+
+<p style="text-align: justify;">
+On a personal note, from my own experiences and knowledge, the opportunities (limited to none) and the working conditions that exist in Greece are very much indicative of what one would expect from a country with these metrics. 
+</p>
+
+<p style="text-align: justify;">
+Growing up as a child, you think that you have to follow the natural flow of the societal norm and rules. Go to school, go to university and then find a job. Easy, right? This is not the case for many young people in Greece, though, as they would be naive to think that. After they are done with their studies, they have to face a deep cultivated and crisis-enforced environment of nepotism, further amplified by unemployment and stagflation.
+</p>
+
+<p style="text-align: justify;">
+However, to return to the point, raw data do not always draw the complete picture of a situation, but a lot of the time is a close imitation of reality. 
+</p>
+
+<p style="text-align: justify;">
+This reality leads many people, particularly young people, to the hard decision of leaving home and, in this case, their home country. The conditions are always different and unique for each individual. The feeling, is always the same.
+</p>
+
+
+
+***You may feel like home is the anchor in your storm, but leaving may well save you from drowning.***
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
 ```{r GT Greece summary Table, echo = F}
 # Create table with Greece's last updated data metrics from each category to visualize and make new column with code flag
 gt_greece <- greece_summary %>% 
-  dplyr::select(category, TIME, Value, average) %>% 
+  dplyr::select(category, Value, average) %>% 
   gt() %>% 
   tab_header(
-    title = md("**Summary Greece Positions**"),
-    subtitle = "An overview of positions of Greece in OECD metrics"
-  ) %>% 
+    title = md("**Summary Greece & Average 2020**"),
+    subtitle = "An overview of OECD 2020 data"
+  ) %>%  
    cols_align(
       align = c("center"),
       columns = c(everything())
     ) %>% 
   cols_label(
      category = " ",
-     TIME = md("**Year of Data**"),
-    	Value = md("**Greece**"),   # Put the Flag here
+    	Value = md("**Greece**"),   
      average = md("**Average**")) %>% 
   fmt_number(columns = average, decimals = 2, sep_mark = " ") %>%
   fmt_number(columns = Value, decimals = 2, sep_mark = " ") %>%
+   fmt_currency(
+    columns = 2:3,
+    rows = 7:9,
+    currency = "USD",
+    suffixing = TRUE
+  ) %>% 
+  fmt_percent(
+    columns = 2:3,
+    rows = 1:5,
+    scale_values = FALSE
+  ) %>% 
   # fmt_number(rows = row == 6,  suffixing = TRUE) %>%
   #fmt_number(rows = 7,  suffixing = TRUE) %>%
   opt_table_font(
@@ -1962,63 +1951,80 @@ gt_greece <- greece_summary %>%
       google_font(name = "Lato")
     )
   ) %>% 
-  tab_source_note(source_note = "Countries used") %>%
-  tab_options(source_notes.padding = px(14))
+  tab_source_note(source_note = md("[**OECD org**](https://www.oecd.org/) 2020 Data")) %>%
+  tab_footnote(
+    footnote = "Countries included for the calculation of the average are the ones used for the whole analysis",
+    locations = cells_column_labels(columns = average)
+  ) %>% 
+  tab_style(
+    locations = cells_body(
+      rows = everything(),
+      columns = Value
+    ),
+    style = list(
+      cell_fill(color = "#001489"),
+      cell_text(color = "#FFFFFF")
+    )
+  ) %>% 
+  tab_style(
+    locations = cells_body(
+      rows = everything(),
+      columns = average
+    ),
+    style = list(
+      cell_fill(color = "#d3d3d3"),
+      cell_text(color = "black")
+    )
+  ) %>% 
+  cols_width(
+    category ~ px(250)) %>% 
+  tab_options(source_notes.padding = px(14)) %>% 
+  gtExtras::gt_theme_nytimes()
   
 gt_greece
 ```
 
-
-
-
-
-# Conclusion
-
-On a personal note, from my own experiences and knowledge, the opportunities, as well as the working conditions that exist in Greece are very much indicative of what one would expect from a country with these metrics.
-
-
-
-
-
-
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;">  </p>
 
+**Thank you for reading**
+
+<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> End 🏁 </p>
 
 
 <p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> References 📚 </p>
 
-OECD (2022), Unemployment rate (indicator). doi: 10.1787/52570002-en (Accessed on 08 February 2022)
+OECD (2022), Unemployment rate (indicator). doi: 10.1787/52570002-en (Accessed on 15 February 2022)
 
-OECD (2022), Unemployment rate by age group (indicator). doi: 10.1787/997c8750-en (Accessed on 08 February 2022)
+OECD (2022), Unemployment rate by age group (indicator). doi: 10.1787/997c8750-en (Accessed on 15 February 2022)
 
-OECD (2022), Unemployment rates by education level (indicator). doi: 10.1787/6183d527-en (Accessed on 08 February 2022)
+OECD (2022), Unemployment rates by education level (indicator). doi: 10.1787/6183d527-en (Accessed on 15 February 2022)
 
-OECD (2022), Long-term unemployment rate (indicator). doi: 10.1787/76471ad5-en (Accessed on 08 February 2022)
+OECD (2022), Long-term unemployment rate (indicator). doi: 10.1787/76471ad5-en (Accessed on 15 February 2022)
 
-OECD (2022), Youth unemployment rate (indicator). doi: 10.1787/c3634df7-en (Accessed on 08 February 2022)
+OECD (2022), Youth unemployment rate (indicator). doi: 10.1787/c3634df7-en (Accessed on 15 February 2022)
 
-OECD (2022), Employment rate (indicator). doi: 10.1787/1de68a9b-en (Accessed on 08 February 2022)
+OECD (2022), Employment rate (indicator). doi: 10.1787/1de68a9b-en (Accessed on 15 February 2022)
 
-OECD (2022), Employment rate by age group (indicator). doi: 10.1787/084f32c7-en (Accessed on 08 February 2022)
+OECD (2022), Employment rate by age group (indicator). doi: 10.1787/084f32c7-en (Accessed on 15 February 2022)
 
-OECD (2022), Employment by education level (indicator). doi: 10.1787/26f676c7-en (Accessed on 08 February 2022)
+OECD (2022), Employment by education level (indicator). doi: 10.1787/26f676c7-en (Accessed on 15 February 2022)
 
-OECD (2022), Self-employment rate (indicator). doi: 10.1787/fb58715e-en (Accessed on 08 February 2022)
+OECD (2022), Self-employment rate (indicator). doi: 10.1787/fb58715e-en (Accessed on 15 February 2022)
 
-OECD (2022), Hours worked (indicator). doi: 10.1787/47be1c78-en (Accessed on 08 February 2022)
+OECD (2022), Hours worked (indicator). doi: 10.1787/47be1c78-en (Accessed on 15 February 2022)
 
-OECD (2022), GDP per hour worked (indicator). doi: 10.1787/1439e590-en (Accessed on 08 February 2022)
+OECD (2022), GDP per hour worked (indicator). doi: 10.1787/1439e590-en (Accessed 15 08 February 2022)
 
-OECD (2022), Average wages (indicator). doi: 10.1787/cc3e1387-en (Accessed on 08 February 2022)
+OECD (2022), Average wages (indicator). doi: 10.1787/cc3e1387-en (Accessed on 15 February 2022)
 
-OECD (2022), Young population (indicator). doi: 10.1787/3d774f19-en (Accessed on 08 February 2022)
+OECD (2022), Young population (indicator). doi: 10.1787/3d774f19-en (Accessed on 15 February 2022)
 
-OECD (2022), Old-age dependency ratio (indicator). doi: 10.1787/e0255c98-en (Accessed on 08 February 2022)
+OECD (2022), Old-age dependency ratio (indicator). doi: 10.1787/e0255c98-en (Accessed on 15 February 2022)
 
-OECD (2022), Fertility rates (indicator). doi: 10.1787/8272fb01-en (Accessed on 08 February 2022)
+OECD (2022), Fertility rates (indicator). doi: 10.1787/8272fb01-en (Accessed on 15 February 2022)
 
-OECD (2022), Gross domestic product (GDP) (indicator). doi: 10.1787/dc2f7aec-en (Accessed on 08 February 2022)
+OECD (2022), Gross domestic product (GDP) (indicator). doi: 10.1787/dc2f7aec-en (Accessed on 15 February 2022)
 
-OECD (2022), Education spending (indicator). doi: 10.1787/ca274bac-en (Accessed on 08 February 2022)
+OECD (2022), Education spending (indicator). doi: 10.1787/ca274bac-en (Accessed on 15 February 2022)
 
-<p style="background-color:#001489 ;color:#FFFFFF ;font-size:25px;text-align:center;border-radius:10px 10px;font-weight:bold;border-style:solid;border-color:#001489;"> End 🏁 </p>
+OECD (2022), General government debt (indicator). doi: 10.1787/a0528cc2-en (Accessed on 15 February 2022)
